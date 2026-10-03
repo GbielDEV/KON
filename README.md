@@ -242,4 +242,5 @@ Todos os 27 testes unitários e de integração serão executados e devem passar
 3. **Voz em Português do Brasil:**
    - O KON seleciona automaticamente a voz `Microsoft Maria Desktop - Portuguese(Brazil)` presente no Windows. Caso nenhuma voz pt-BR esteja instalada, ele utilizará a voz padrão do sistema.
 #   K O N  
+ #   K O N  
  

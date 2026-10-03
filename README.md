@@ -1,120 +1,116 @@
-# 🌌 KON — Assistente Pessoal por Voz para Windows (Marco 2)
+<div align="center">
 
-O **KON** é um assistente pessoal inteligente desenvolvido para Windows, inspirado no conceito do JARVIS. No **Marco 2**, o subsistema de voz foi completamente refatorado para operar de forma **REAL, CONTÍNUA e 100% POR VOZ**.
+# 🌌 KON
 
-> 💡 **"Nenhum botão é necessário para utilizar o KON."**
-> Ao iniciar o assistente, o microfone entra imediatamente em captura contínua e permanece escutando a wake word *"Okay KON"*. A interface gráfica em React atua primariamente como um **Monitor Visual HUD** em tempo real.
+### Assistente pessoal por voz para Windows
 
----
+Inspirado no conceito do JARVIS, o **KON** escuta, entende e executa comandos **100% por voz**, de forma contínua, offline e sem nenhum botão.
 
-## 🏛️ Pipeline Obrigatório de Voz
+<p>
+  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Windows_10%2F11-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
+  <img src="https://img.shields.io/badge/Marco-2-36bcf7?style=for-the-badge" alt="Marco 2" />
+</p>
 
-```
-Microfone (sounddevice.RawInputStream, 16kHz, mono, thread isolada + Queue)
-  │
-  ▼
-Wake Word (openWakeWord - detecção offline contínua em IDLE)
-  │ ──► Transição de estado: [STATE] OUVINDO
-  ▼
-TTS Responde ("Sim?" em pt-BR via pyttsx3 / Microsoft Maria)
-  │
-  ▼
-VAD (webrtcvad - detecção de início de fala, continuidade e silêncio de 1.5s)
-  │ ──► [VAD] Início da fala ──► [VAD] Fim da fala
-  ▼
-STT (faster-whisper - modelo small, CPU, int8, pt)
-  │ ──► [STATE] PROCESSANDO ──► [STT] Texto transcrito
-  ▼
-NLU / Intent Parser (sentence-transformers - paraphrase-multilingual-MiniLM-L12-v2)
-  │ ──► [NLU] Intent resolvido via similaridade de cosseno
-  ▼
-Command Registry (@command + dispatch seguro, sem eval/exec)
-  │ ──► [STATE] EXECUTING ──► [COMMAND] Executando comando
-  ▼
-ToolManager (Validação estrita de níveis de permissão SAFE/CONFIRM/CRITICAL)
-  │
-  ▼
-Ação no Windows (Execução segura de aplicativos, navegação, arquivos ou sistema)
-  │
-  ▼
-TTS Resposta (Síntese falada em português brasileiro em thread não-bloqueante)
-  │ ──► [STATE] SPEAKING ──► [TTS] Resposta falada
-  ▼
-Retorno para IDLE (Retoma escuta contínua de "Okay KON")
-  └──► [STATE] IDLE
-```
+</div>
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📖 Sobre o projeto
+
+O **KON** é um assistente pessoal inteligente desenvolvido para Windows. No **Marco 2**, o subsistema de voz foi completamente refatorado para operar de forma **real, contínua e 100% por voz**.
+
+> 💡 **Nenhum botão é necessário para utilizar o KON.**
+> Ao iniciar, o microfone entra em captura contínua e fica escutando a wake word **"Okay KON"**. A interface em React funciona apenas como um **Monitor Visual HUD** em tempo real.
+
+### ✨ Destaques
+
+- 🎙️ **Escuta contínua** com captura de áudio em thread isolada (16 kHz, mono)
+- 🗣️ **Wake word offline** ("Okay KON") com openWakeWord
+- 🔇 **Detecção de fala (VAD)** com encerramento automático após 1,5 s de silêncio
+- 📝 **Transcrição local** com faster-whisper (modelo `small`, CPU, int8, pt)
+- 🧠 **NLU semântico multilíngue** com sentence-transformers e similaridade de cosseno
+- 🔐 **Execução segura**: registry de comandos sem `eval`/`exec` e níveis de permissão `SAFE`, `CONFIRM` e `CRITICAL`
+- 🔊 **Resposta falada** em português brasileiro (voz Microsoft Maria) em thread não-bloqueante
+- 🖥️ **HUD em tempo real** via WebSocket (React 19 + Vite)
+
+---
+
+## 🏛️ Pipeline de voz
+
+```mermaid
+flowchart TD
+    A["🎤 Microfone<br/>sounddevice · 16kHz · mono"] --> B["👂 Wake Word<br/>openWakeWord (offline)"]
+    B -->|"Okay KON"| C["🔊 TTS: 'Sim?'<br/>pyttsx3"]
+    C --> D["🔇 VAD<br/>webrtcvad · silêncio de 1.5s"]
+    D --> E["📝 STT<br/>faster-whisper small"]
+    E --> F["🧠 NLU<br/>sentence-transformers"]
+    F --> G["📋 Command Registry<br/>@command + dispatch seguro"]
+    G --> H["🔐 ToolManager<br/>SAFE · CONFIRM · CRITICAL"]
+    H --> I["💻 Ação no Windows"]
+    I --> J["🔊 TTS: resposta falada"]
+    J --> K(["⏸️ IDLE<br/>volta a escutar"])
+    K --> B
+```
+
+---
+
+## 📁 Estrutura do projeto
 
 ```
 KON/
-├── main.py                     # PONTO DE ENTRADA PRINCIPAL: Inicia servidor e voz contínua
-├── INICIAR_KON.bat             # Inicializador automático (Backend + Frontend + Navegador)
-├── requirements.txt            # Dependências oficiais (sounddevice, webrtcvad, whisper, etc.)
+├── main.py                     # Ponto de entrada: inicia servidor e voz contínua
+├── INICIAR_KON.bat             # Inicializador (backend + frontend + navegador)
+├── requirements.txt            # Dependências do Python
 │
-├── voice_assistant/            # Subsistema de Voz Real Desacoplado (Marco 2)
-│   ├── audio/
-│   │   ├── capture.py          # sounddevice.RawInputStream (16kHz mono, queue, non-blocking)
-│   │   ├── vad.py              # webrtcvad (detecção de fala e timeout de 1.5s de silêncio)
-│   │   └── wake_word.py        # openWakeWord offline (detecta "Okay KON" em IDLE)
-│   ├── stt/
-│   │   └── whisper_engine.py   # faster-whisper small (int8/cpu/pt, singleton de baixo consumo)
-│   ├── nlu/
-│   │   └── intent_parser.py    # sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2)
-│   ├── commands/
-│   │   ├── registry.py         # Registry pattern (@command + dispatch + ToolManager check)
-│   │   ├── system_commands.py  # abrir_navegador, informar_horario, abrir_pasta
-│   │   └── media_commands.py   # tocar_musica
-│   ├── tts/
-│   │   └── speak.py            # pyttsx3 (Microsoft Maria / pt-BR, worker thread assíncrono)
-│   └── core/
-│       └── state_machine.py    # VoicePipelineOrchestrator (Orquestração contínua e estados)
+├── voice_assistant/            # Subsistema de voz (Marco 2)
+│   ├── audio/                  # capture.py · vad.py · wake_word.py
+│   ├── stt/                    # whisper_engine.py
+│   ├── nlu/                    # intent_parser.py
+│   ├── commands/               # registry.py · system_commands.py · media_commands.py
+│   ├── tts/                    # speak.py
+│   └── core/                   # state_machine.py (VoicePipelineOrchestrator)
 │
-├── backend/                    # Núcleo do Sistema (Marco 1 Preservado)
-│   ├── core/
-│   │   ├── kon.py              # KONCore (Integrado ao VoicePipelineOrchestrator)
-│   │   ├── state.py            # Estados finitos (IDLE, LISTENING, THINKING, etc.)
-│   │   ├── events.py           # EventBus e esquemas Pydantic
-│   │   ├── config.py           # Configurações do ambiente (.env)
-│   │   └── logger.py           # Logging com prefixos [MIC], [WAKE], [VAD], [STT], etc.
-│   ├── ai/
-│   │   └── tool_manager.py     # ToolManager e níveis de permissão (SAFE, CONFIRM, CRITICAL)
-│   ├── computer/               # Integração segura com Windows (aplicações, telemetria, arquivos)
-│   ├── memory/                 # Persistência SQLite local (data/kon.db)
+├── backend/                    # Núcleo do sistema (Marco 1)
+│   ├── core/                   # KONCore, estados, EventBus, config, logger
+│   ├── ai/                     # ToolManager e níveis de permissão
+│   ├── computer/               # Integração segura com o Windows
+│   ├── memory/                 # Persistência SQLite local
 │   └── server/                 # FastAPI REST + WebSocket (/ws)
 │
 ├── frontend/                   # Monitor Visual HUD (React 19 + Vite)
-│   ├── src/
-│   │   ├── components/         # HologramCore, StatusHeader, EventConsole, VoiceStatusBar
-│   │   ├── services/           # WebSocket client em tempo real
-│   │   └── App.jsx
-│
-├── data/models/                # Modelos ONNX locais (okay_kon.onnx) e banco kon.db
-└── tests/                      # Bateria de testes automatizados (Marco 1 e Marco 2)
-    ├── test_all.py             # Testes de integração do Marco 1
-    ├── test_voice_pipeline.py  # Testes de compatibilidade do pipeline de voz
-    └── test_voice_assistant.py # Testes unitários do subsistema voice_assistant (Marco 2)
+├── data/models/                # Modelos ONNX locais e banco kon.db
+└── tests/                      # Testes automatizados (Marco 1 e Marco 2)
 ```
 
 ---
 
-## ⚙️ Pré-requisitos & Instalação
+## ⚙️ Pré-requisitos
 
-- **Sistema Operacional:** Windows 10 ou Windows 11 (64-bit)
-- **Python:** Versão 3.12 (ou superior)
-- **Node.js:** Versão 18+ (para a interface React)
-- **Microfone:** Dispositivo de entrada padrão configurado no Windows
-- **Memória RAM:** Mínimo de 8 GB (os modelos são carregados como singletons otimizados)
+| Item | Requisito |
+|------|-----------|
+| **Sistema operacional** | Windows 10 ou 11 (64-bit) |
+| **Python** | 3.12 ou superior |
+| **Node.js** | 18 ou superior (interface React) |
+| **Microfone** | Dispositivo de entrada padrão configurado no Windows |
+| **Memória RAM** | Mínimo de 8 GB |
 
-### 1. Clonar ou Acessar o Repositório
+---
+
+## 📦 Instalação
+
+**1. Acesse o repositório**
+
 ```powershell
-cd E:\KON
+git clone https://github.com/GbielDEV/KON.git
+cd KON
 ```
 
-### 2. Criar e Ativar o Ambiente Virtual
-Utilizando `uv` (recomendado) ou `python`:
+**2. Crie e ative o ambiente virtual**
+
 ```powershell
 uv venv
 # ou: python -m venv .venv
@@ -122,21 +118,15 @@ uv venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Instalar Dependências do Python
+**3. Instale as dependências do Python**
+
 ```powershell
 uv pip install -r requirements.txt
 # ou: pip install -r requirements.txt
 ```
 
-As principais bibliotecas instaladas:
-- `sounddevice`: Captura de áudio de baixa latência em thread separada
-- `webrtcvad-wheels`: Detecção de atividade de voz (VAD) profissional
-- `openwakeword`: Detecção local e offline de Wake Word
-- `faster-whisper`: Transcrição de fala local (modelo `small`, CPU int8)
-- `sentence-transformers`: NLU semântico multilíngue
-- `pyttsx3`: Síntese de voz em português brasileiro nativa
+**4. Instale as dependências do frontend**
 
-### 4. Instalar Dependências do Frontend
 ```powershell
 cd frontend
 npm install
@@ -145,102 +135,128 @@ cd ..
 
 ---
 
-## 🚀 Como Executar o KON (100% por Voz)
+## 🚀 Como executar
 
-### Comando Principal
-Abra o terminal na raiz do projeto e execute:
+**Somente o assistente (backend + voz):**
+
 ```powershell
 python main.py
 ```
 
-O assistente inicializará automaticamente:
-1. Conecta o microfone ao fluxo contínuo.
-2. Fica em `[STATE] IDLE` escutando a wake word.
-3. Inicia o servidor local FastAPI e WebSocket em `http://127.0.0.1:8000`.
+O KON conecta o microfone, entra em `[STATE] IDLE` escutando a wake word e sobe o servidor local em `http://127.0.0.1:8000`.
 
-### Inicializador Completo (Com Monitor Visual React)
-Dê um duplo clique no arquivo:
-```
-INICIAR_KON.bat
-```
-Ele iniciará o backend com captura de voz ativa, o servidor do Vite e abrirá seu navegador padrão em `http://127.0.0.1:5173` para monitoramento holográfico.
+**Completo, com o Monitor Visual React:**
+
+Dê um duplo clique em `INICIAR_KON.bat`. Ele inicia o backend com a voz ativa, o servidor do Vite e abre o navegador em `http://127.0.0.1:5173`.
 
 ---
 
-## 🎙️ Fluxo Obrigatório de Teste Real
+## 🎙️ Testando por voz
 
-Com o assistente executando:
+1. Não clique em nenhum botão.
+2. Diga **"Okay KON"** perto do microfone.
+3. O KON responde **"Sim?"**
+4. Diga o comando, por exemplo **"abrir navegador"**.
 
-1. **Não clique em nenhum botão.**
-2. Fale claramente próximo ao microfone:
-   > **"Okay KON"**
-3. Observe os logs no terminal:
-   ```
-   [WAKE] Wake word detectada! Disparando ciclo de voz...
-   [STATE] OUVINDO
-   [TTS] Resposta: "Sim?"
-   ```
-4. O KON responderá por voz: **"Sim?"**
-5. Diga imediatamente o seu comando:
-   > **"abrir navegador"**
-6. O VAD capturará sua fala e encerrará a gravação após 1.5s de silêncio:
-   ```
-   [VAD] Início da fala detectado!
-   [VAD] Fim da fala (silêncio de 1.5s detectado).
-   [STATE] PROCESSANDO
-   [STT] Transcrevendo...
-   [STT] Texto: "abrir navegador"
-   [NLU] Intent: abrir_navegador (confiança: 1.000 >= 0.55)
-   [STATE] EXECUTING
-   [COMMAND] Executando abrir_navegador
-   [STATE] SPEAKING
-   [TTS] Resposta: "Abrindo o navegador."
-   [STATE] IDLE
-   ```
-7. O navegador Google Chrome / padrão do Windows abrirá na sua tela.
-8. O KON confirmará por voz: *"Abrindo o navegador."*
-9. O assistente retornará automaticamente para `[STATE] IDLE` e continuará escutando *"Okay KON"* indefinidamente.
+Exemplo do que aparece no terminal:
+
+```
+[WAKE] Wake word detectada! Disparando ciclo de voz...
+[STATE] OUVINDO
+[TTS] Resposta: "Sim?"
+[VAD] Início da fala detectado!
+[VAD] Fim da fala (silêncio de 1.5s detectado).
+[STATE] PROCESSANDO
+[STT] Texto: "abrir navegador"
+[NLU] Intent: abrir_navegador (confiança: 1.000 >= 0.55)
+[STATE] EXECUTING
+[COMMAND] Executando abrir_navegador
+[STATE] SPEAKING
+[TTS] Resposta: "Abrindo o navegador."
+[STATE] IDLE
+```
+
+### Comandos disponíveis
+
+| Comando | Exemplo de fala |
+|---------|-----------------|
+| `abrir_navegador` | "abrir navegador" |
+| `informar_horario` | "que horas são" |
+| `abrir_pasta` | "abrir pasta" |
+| `tocar_musica` | "tocar música" |
 
 ---
 
-## 🧪 Testes de Componentes e Diagnóstico
+## 🧪 Testes e diagnóstico
 
-### Teste Rápido do Microfone
+<details>
+<summary><b>Testar o microfone</b></summary>
+
 ```powershell
 uv run python -c "from voice_assistant.audio.capture import AudioCapture; cap = AudioCapture(); print('Microfone:', cap.get_device_name(), '| Disponível:', cap.is_available())"
 ```
+</details>
 
-### Teste do Wake Word Detector
+<details>
+<summary><b>Testar a wake word</b></summary>
+
 ```powershell
 uv run python -c "from voice_assistant.audio.wake_word import OpenWakeWordDetector; d = OpenWakeWordDetector(); d.start(); print('Detector ativo:', d.is_active(), '| Modelos:', d._active_models); d.stop()"
 ```
+</details>
 
-### Teste do STT (Whisper small)
+<details>
+<summary><b>Testar o STT (Whisper small)</b></summary>
+
 ```powershell
-uv run python -c "from voice_assistant.stt.whisper_engine import WhisperSTTEngine; import numpy as np; stt = WhisperSTTEngine(model_size='small'); print('Whisper small pronto!')"
+uv run python -c "from voice_assistant.stt.whisper_engine import WhisperSTTEngine; stt = WhisperSTTEngine(model_size='small'); print('Whisper small pronto!')"
 ```
+</details>
 
-### Teste do NLU (Sentence Transformers)
+<details>
+<summary><b>Testar o NLU</b></summary>
+
 ```powershell
 uv run python -c "from voice_assistant.nlu.intent_parser import IntentParser; p = IntentParser(); print('abrir navegador ->', p.resolver_intent('abrir navegador')); print('que horas são ->', p.resolver_intent('que horas são'))"
 ```
+</details>
 
-### Execução de Todos os Testes Automatizados
+**Rodar todos os testes automatizados (27 testes):**
+
 ```powershell
 uv run python -m pytest -v
 ```
-Todos os 27 testes unitários e de integração serão executados e devem passar com sucesso.
 
 ---
 
-## 🛠️ Solução de Problemas
+## 🛠️ Solução de problemas
 
-1. **Microfone não detectado:**
-   - Verifique nas configurações do Windows se o microfone está definido como dispositivo padrão e se as permissões de acesso ao microfone estão ativadas para aplicativos.
-2. **Modelo Whisper demorando na primeira execução:**
-   - Na primeira vez em que o Whisper `small` for executado, o modelo (~460 MB) será baixado e armazenado em cache localmente no diretório do usuário (`.cache/huggingface/hub`). Nas próximas execuções, o carregamento será instantâneo.
-3. **Voz em Português do Brasil:**
-   - O KON seleciona automaticamente a voz `Microsoft Maria Desktop - Portuguese(Brazil)` presente no Windows. Caso nenhuma voz pt-BR esteja instalada, ele utilizará a voz padrão do sistema.
-#   K O N  
- #   K O N  
- 
+<details>
+<summary><b>Microfone não detectado</b></summary>
+
+Verifique nas configurações do Windows se o microfone é o dispositivo padrão e se o acesso ao microfone está liberado para aplicativos.
+</details>
+
+<details>
+<summary><b>Whisper demora na primeira execução</b></summary>
+
+Na primeira vez, o modelo `small` (~460 MB) é baixado e guardado em cache em `.cache/huggingface/hub`. Nas próximas execuções, o carregamento é rápido.
+</details>
+
+<details>
+<summary><b>Voz em português do Brasil</b></summary>
+
+O KON seleciona automaticamente a voz `Microsoft Maria Desktop - Portuguese(Brazil)`. Se nenhuma voz pt-BR estiver instalada, ele usa a voz padrão do sistema.
+</details>
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por **Gabriel Madureira**.
+
+<p>
+  <a href="https://github.com/GbielDEV"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+  <a href="https://www.linkedin.com/in/gbieldev/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+  <a href="https://www.instagram.com/g.madureiras/"><img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram" /></a>
+</p>

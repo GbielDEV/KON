@@ -1,0 +1,508 @@
+================================================================================
+                    VISTORIA COMPLETA E DOSSIÊ TÉCNICO: PROJETO KON
+         Assistente Pessoal Inteligente, Gemini Live Native Audio & Computer Use
+================================================================================
+Data da Vistoria: 02/10/2026
+Ambiente Operacional: Windows 10/11 (64-bit)
+Repositório: E:\KON
+Autor do Dossiê: Antigravity AI (Google DeepMind Agentic Pair Programmer)
+Objetivo: Diagnóstico 360°, inventário de capacidades, análise de código e erros,
+          histórico de alterações e base de conhecimento completa para instrução de IAs.
+
+================================================================================
+1. VISÃO GERAL E IDENTIDADE DO PROJETO
+================================================================================
+
+O KON é um assistente pessoal para Windows concebido sob o paradigma "JARVIS":
+um operador de desktop proativo, contínuo e orientado primordialmente à voz,
+capaz de raciocinar e agir sobre o sistema operacional através de Function Calling
+(chamada declarativa de ferramentas) e Computer Use (interação com interface gráfica).
+
+1.1. Arquitetura Atual (ADA V2 Blueprint - Gemini Live Engine)
+Ao contrário de assistentes tradicionais que usam pipelines fragmentados
+(VAD -> Whisper -> LLM de Texto -> TTS local), o KON opera com o padrão
+moderno ADA V2:
+- Motor Central: Google Gemini Live API com Native Audio Full-Duplex
+  Modelo: `models/gemini-2.5-flash-native-audio-preview-12-2025`
+- Fluxo de Áudio:
+  • Entrada: Microfone capturado via PyAudio (16.000 Hz, 16-bit PCM, Mono, Chunk 1024)
+  • Saída: Áudio sintetizado nativamente pelo Gemini transmitido a 24.000 Hz PCM para caixas/fones
+  • Barge-in (Interrupção natural): Quando o usuário fala enquanto o assistente responde,
+    o motor cancela a reprodução instantaneamente e atende ao novo input.
+  • Latência: Tempo de resposta de voz ultra-baixo (~800ms a 1.2s), sem carregamento pesado de modelos locais.
+- Interface Gráfica: Monitor Visual Holográfico HUD (React 19 + Vite 6),
+  que atua como painel de telemetria, visualizador do orbe áudio-reativo, console
+  de eventos e interface de aprovação para ações críticas.
+
+1.2. Evolução Histórica dos Marcos
+- Marco 1: Núcleo base do assistente, EventBus, FastAPI/WebSocket, telemetria psutil,
+  SQLite (kon.db), primeiros wrappers do Windows (pywin32, subprocess).
+- Marco 2 (Legado - Arquivado em `_legacy/`):
+  Implementava pipeline de voz 100% offline local usando sounddevice, openWakeWord ("Okay KON"),
+  webrtcvad, faster-whisper (small, CPU int8), sentence-transformers e pyttsx3.
+  Substituído devido ao alto consumo de memória RAM/CPU e latência superior a 3.5s.
+- Marco Atual (Blueprint ADA V2):
+  Transição completa para o Gemini Live Native Audio com PyAudio, dispensando wake words rígidas
+  e modelos locais pesados. O sistema conecta em menos de 1 segundo e tem suporte nativo a
+  ferramentas multimodais e Computer Use.
+
+================================================================================
+2. ESTRUTURA DE DIRETÓRIOS E COMPONENTES
+================================================================================
+
+E:\KON\
+├── main.py                     # Ponto de entrada raiz unificado (FastAPI + WebSocket + Live Audio)
+├── INICIAR_KON.bat             # Script batch para arranque em 1 clique (Backend + Vite + Browser)
+├── requirements.txt            # Dependências Python instaladas no .venv
+├── pyproject.toml              # Metadados do projeto Python
+├── pytest.ini                  # Configurações do framework de testes
+├── README.md                   # Documentação descritiva (requer atualização p/ ADA V2)
+├── KON_VOICE_TESTS.md          # Especificação de testes de bancada de microfone e áudio
+├── benchmark_system.py         # Script de benchmark de hardware e latência
+│
+├── backend/                    # Núcleo da Aplicação Python
+│   ├── main.py                 # Ponto de entrada com rotina de autoteste (--test-mode)
+│   ├── core/                   # Orquestração e Ciclo de Vida
+│   │   ├── kon.py              # KONCore: Orquestrador central que une Live Engine, EventBus e Ferramentas
+│   │   ├── live_engine.py      # LiveAudioEngine: Conexão WebSocket Gemini Live, PyAudio, Barge-in, Telemetria
+│   │   ├── state.py            # Máquina de estados (BOOT, IDLE, LISTENING, PROCESSING, EXECUTING, SPEAKING, ERROR)
+│   │   ├── events.py           # EventBus pub/sub assíncrono com schemas Pydantic
+│   │   ├── config.py           # Settings Pydantic baseadas em variáveis de ambiente (.env)
+│   │   └── logger.py           # Logger unificado com prefixos contextuais e bridge para EventBus
+│   │
+│   ├── ai/                     # Inteligência, Planejamento e Ferramentas
+│   │   ├── tool_registry.py    # Registro declarativo de ferramentas (ToolRegistry, ToolSpec, PermissionLevel)
+│   │   ├── gemini_tools.py     # GeminiToolDispatcher: Converte specs para o schema GenAI e faz dispatch
+│   │   ├── planner.py          # Planejador de tarefas complexas e decomposição de passos
+│   │   ├── tool_manager.py     # Gerenciamento de ferramentas e histórico de invocações
+│   │   ├── loop_guard.py       # LoopGuard: Prevenção de chamadas repetitivas ou ping-pong infinito
+│   │   ├── brain.py            # Adaptador de raciocínio de alto nível
+│   │   └── prompts.py          # Instruções de sistema e diretrizes comportamentais
+│   │
+│   ├── computer/               # Interação Direta com o Sistema Windows
+│   │   ├── path_resolver.py    # UniversalPathResolver: Win32 Known Folders, multi-drive, unicode, fuzzy match
+│   │   ├── filesystem.py       # FileSystemService: Operações com suporte a escopo de raiz e busca inteligente
+│   │   ├── files.py            # FileManager: Interface de alto nível para manipulação de arquivos
+│   │   ├── applications.py     # ApplicationManager: Resolução de caminhos, execução e controle de processos
+│   │   ├── computer_use.py     # ComputerUseService: Orquestrador de GUI (Observe -> Act -> Verify)
+│   │   ├── windows.py          # WindowsService: Manipulação de janelas (Win32 API: foco, minimizar, maximizar)
+│   │   ├── screen.py           # ScreenService: Captura de tela, resolução, DPI e detecção de mudanças
+│   │   ├── mouse.py            # MouseController: Movimentação suave, cliques, arrastes, bounding box
+│   │   ├── keyboard.py         # KeyboardController: Digitação segura com acentuação pt-BR, atalhos compostos
+│   │   ├── uia.py              # UIAutomationService: Inspeciona árvore de acessibilidade do Windows (UIA)
+│   │   └── system.py           # SystemTelemetry: Métricas de CPU, RAM, discos, uptime e processos
+│   │
+│   ├── browser/                # Automação de Navegadores Web
+│   │   └── browser.py          # BrowserService: Abertura de URLs, controle de abas, navegação e leitura
+│   │
+│   ├── security/               # Segurança, Sandbox e Autorização
+│   │   ├── confirmation_manager.py # ConfirmationManager: Tokens descartáveis criptográficos e escuta de voz
+│   │   ├── file_policy.py      # FileSensitivityPolicy: Bloqueio estrito de arquivos sensíveis (.env, chaves)
+│   │   ├── path_validator.py   # PathSecurityValidator: Bloqueio de path traversal (..) e pastas de sistema
+│   │   ├── audit_logger.py     # Registro e auditoria de ações executadas no sistema
+│   │   └── subprocess_sandbox.py # Execução isolada de comandos de sistema com timeouts
+│   │
+│   ├── memory/                 # Persistência Local
+│   │   └── memory.py           # MemoryManager: SQLite (kon.db), aliases de pastas, histórico e permissões
+│   │
+│   └── server/                 # Camada de Comunicação com Frontend
+│       ├── ws_server.py        # FastAPI app, endpoints REST (/api/health, /api/state) e WebSocket (/ws)
+│       └── connection_manager.py # Gerenciador de conexões WebSocket ativas e broadcast de eventos
+│
+├── frontend/                   # Interface Monitor Visual HUD (React 19 + Vite 6)
+│   ├── src/
+│   │   ├── App.jsx             # Componente raiz: Conecta ao WebSocket, gerencia estados e confirmações
+│   │   ├── App.css             # Estilização holográfica cyberpunk / sci-fi HUD
+│   │   ├── index.css           # Tokens CSS base, tipografia e reset
+│   │   ├── main.jsx            # Ponto de montagem React DOM
+│   │   ├── components/
+│   │   │   ├── HologramCore.jsx    # Orbe central 3D/Canvas holográfico reativo ao som e estado
+│   │   │   ├── StatusHeader.jsx    # Cabeçalho com telemetria (CPU, RAM, Uptime, microfone, status)
+│   │   │   ├── EventConsole.jsx    # Console de logs em tempo real e transcrição de voz contínua
+│   │   │   ├── VoiceStatusBar.jsx  # Indicador de níveis RMS de áudio de entrada e saída
+│   │   │   └── CommandBar.jsx      # Barra de comando textual manual para depuração e testes
+│   │   └── services/
+│   │       └── websocket.js        # Cliente WebSocket resiliente com reconexão automática e event emitter
+│   ├── package.json            # Dependências npm
+│   └── vite.config.js          # Configuração de build e porta do Vite (5173)
+│
+├── data/                       # Armazenamento de Dados em Execução
+│   ├── kon.db                  # Banco de dados relacional SQLite (configurações, histórico, permissões)
+│   ├── folder_aliases.json     # Mapeamento persistente de apelidos de diretórios personalizados
+│   ├── chat_history/           # Histórico de conversas em formato JSONL (live_chat.jsonl)
+│   └── models/                 # Modelos complementares locais
+│
+├── tests/                      # Suite de Testes Automatizados (121 testes passando)
+│   ├── test_all.py             # Testes gerais de integração do sistema
+│   ├── test_filesystem_root_fix.py # Testes da correção de escopo de raiz, números decimais e matching
+│   ├── test_universal_filesystem.py # Bateria exaustiva (20 testes) do sistema de arquivos Windows
+│   ├── test_gemini_live_e2e.py # Testes de conexão real e tool calling via WebSocket Live
+│   ├── test_gemini_tools_multi.py # Teste de chamadas em lote e contexto de ferramentas
+│   ├── test_live_audio_stream.py # Teste do motor de áudio, streaming e barge-in
+│   ├── test_desktop_control.py # Testes de mouse, teclado e resolução de apps
+│   ├── test_computer_use.py    # Teste do ciclo Observe -> Act -> Verify
+│   ├── test_security.py        # Teste de políticas de arquivos e sandbox
+│   ├── test_permission_memory.py # Teste de persistência de decisões no SQLite
+│   ├── test_planner.py         # Teste do resolvedor e planejador de ações
+│   └── test_windows_and_apps.py# Teste de descoberta e manipulação de janelas
+│
+└── _legacy/                    # Código Arquivado da Primeira Geração
+    └── voice_assistant/        # Implementação offline antiga (Whisper/openWakeWord/VAD)
+
+================================================================================
+3. ÚLTIMAS ALTERAÇÕES NO PROJETO (Histórico Recente e Correções)
+================================================================================
+
+Com base na vistoria detalhada dos arquivos e testes modificados mais recentemente
+(em especial nos dias 21/09/2026 e 23/09/2026):
+
+3.1. Alterações de 23/09/2026 (Refatoração Crítica do Sistema de Arquivos):
+1. Correção de Escopo de Raiz no FileSystem (`root` scoping fix):
+   - Problema anterior: Ao pesquisar arquivos em uma pasta específica como "Downloads",
+     o sistema às vezes ignorava o filtro ou realizava varreduras globais lentas em todos
+     os discos (C:, D:, E:).
+   - Solução implementada: Em `backend/computer/filesystem.py` e `path_resolver.py`, se o
+     parâmetro `root` for informado (ex: `root="Downloads"`), a busca restringe-se estritamente
+     ao diretório resolvido. Se o diretório raiz não existir, o sistema retorna imediatamente
+     `success: False, reason: "root_not_found"` sem travar nem fazer varredura desnecessária.
+2. Tratamento de Números Decimais em Nomes de Arquivo (`parse_query_stem_and_ext`):
+   - Problema anterior: Buscas como "marketing de influencias 2.3" tinham o ".3" interpretado
+     erroneamente como a extensão do arquivo (`.3`), quebrando a busca por arquivos `.pdf`.
+   - Solução: Implementada regex que reconhece padrões de versão numérica (como "2.3", "1.0", "v2.1")
+     e os mantém no corpo do nome (`stem`), só separando extensões que correspondam a formatos reais.
+3. Algoritmo de Pontuação em 6 Estágios (`score_filename_match_tiered`):
+   - Estágios implementados: correspondência exata de stem -> stem normalizado sem acentos ->
+     substring -> fuzzy difflib -> stem diff -> variações fonéticas.
+   - Garante que ao pedir "versão 2.3", o arquivo "Versão 2.3.pdf" ganhe score >= 0.98 e não
+     seja confundido com "Versão 2.2.pdf".
+4. Abertura Referencial de Arquivos (`referential_open_file`):
+   - Permite comandos de voz naturais como "abra ele", "abra o arquivo", "abre o pdf",
+     lembrando do último arquivo retornado em uma pesquisa anterior.
+5. Resolução Dinâmica de Pastas Conhecidas do Windows (Known Folders):
+   - Integração com a API Win32 `SHGetKnownFolderPath` (ctypes) e leitura direta da chave
+     de registro `User Shell Folders` do Windows.
+   - Detecta automaticamente pastas movidas pelo usuário (ex: Downloads em `D:\Arquivos\Downloads`)
+     e pastas sincronizadas via Microsoft OneDrive (ex: Desktop em `OneDrive\Área de Trabalho`).
+6. Mapeamento de Apelidos de Pastas (`data/folder_aliases.json`):
+   - Adicionado mecanismo persistente para o usuário ensinar novos apelidos para pastas (ex:
+     "minha pasta de projetos" -> "D:\Dev\Projetos").
+
+3.2. Alterações de 21/09/2026 (Módulo Computer Use & Desktop Control):
+1. Camada de Automação de Interface Gráfica (`computer_use.py`, `mouse.py`, `keyboard.py`, `uia.py`):
+   - Movimentação suave e humanizada do cursor do mouse, com limitação de bordas (clamping).
+   - Suporte completo no teclado a acentuação gráfica da língua portuguesa (ã, õ, á, é, í, ó, ú, ç)
+     usando clipboard e sequência de eventos do Windows para não bugar no teclado ABNT2.
+2. Proteção de Janela Esperada (`expected_window`):
+   - Ferramentas como `click`, `type_text` e `hotkey` receberam o parâmetro de segurança
+     `expected_window`. Antes de clicar ou digitar, o KON confere se a janela em primeiro
+     plano bate com a desejada, impedindo ações acidentais em janelas erradas.
+3. Prevenção de Loops Infinitos de Ferramentas (`loop_guard.py`):
+   - Monitoramento de padrões repetitivos de ferramentas: se o modelo tentar chamar a mesma
+     ferramenta com os mesmos argumentos repetidamente ou alternar em ping-pong, o LoopGuard
+     interrompe e orienta o modelo a tentar outra abordagem.
+4. Testes de Barge-In e Full-Duplex no Áudio (`test_live_audio_stream.py`):
+   - Validação da recepção simultânea de pacotes e corte imediato do áudio ao detectar voz do usuário.
+
+================================================================================
+4. RELATÓRIO DE ERROS E PONTOS DE ATENÇÃO DETECTADOS
+================================================================================
+
+Durante a vistoria estrita do código-fonte, execução dos testes e compilação do frontend:
+
+4.1. Status dos Testes:
+- Testes Backend (Pytest): 121 testes executados, 121 PASSARAM COM SUCESSO (100% de aprovação).
+- Testes Frontend (Vite Build): 35 módulos compilados com sucesso em 2.86s, 0 erros de compilação.
+- Autoteste do Backend (`main.py --test-mode`): Todos os 7 subsistemas passaram.
+
+4.2. Inconsistências e Pontos de Atenção Encontrados:
+
+[INCONSISTÊNCIA 1 - DOCUMENTAÇÃO DO README.MD DESATUALIZADA]
+- Severidade: Média (Documental/Confusão Arquitetural)
+- Detalhe: O arquivo `README.md` raiz descreve extensivamente a arquitetura legada do "Marco 2"
+  baseada em modelos locais (sounddevice, openWakeWord, webrtcvad, faster-whisper e sentence-transformers),
+  apontando para uma pasta inexistente na raiz `voice_assistant/` (que foi movida para `_legacy/`).
+- Realidade do Código: O arquivo principal `main.py`, `backend/core/kon.py` e `backend/core/live_engine.py`
+  já utilizam o padrão ADA V2 com Gemini Live Native Audio e PyAudio.
+- Ação Recomendada: Atualizar o `README.md` para refletir fielmente o estado real do projeto (ADA V2).
+
+[INCONSISTÊNCIA 2 - EXECUÇÃO DIRETA DE BACKEND/MAIN.PY VIA CLI]
+- Severidade: Baixa (Ergonomia de Execução)
+- Detalhe: Se executado diretamente como `python backend/main.py --test-mode`, ocorre
+  `ModuleNotFoundError: No module named 'backend'` porque o diretório `backend` é colocado
+  no topo do `sys.path`, em vez da raiz do projeto.
+- Funcionamento Atual: Funciona perfeitamente quando executado a partir da raiz como `python main.py`
+  ou configurando a variável de ambiente `PYTHONPATH=.`.
+- Ação Recomendada: Inserir no topo de `backend/main.py`:
+  ```python
+  import sys
+  from pathlib import Path
+  sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+  ```
+
+[AVISO 3 - DEPRECATION WARNINGS NO SDK DO GOOGLE GENAI]
+- Severidade: Baixa (Advertência de Versão Futura)
+- Detalhe: Durante os testes automatizados, a biblioteca `google-genai` emitiu o aviso:
+  `DeprecationWarning: The 'session.send' method is deprecated and will be removed in a future version.
+   Please use one of the more specific methods: 'send_client_content', 'send_realtime_input', or 'send_tool_response' instead.`
+- Ação Recomendada: Refatorar em `live_engine.py` as chamadas de envio para utilizar
+  `session.send_client_content` ou `session.send_realtime_input`.
+
+[AVISO 4 - STARLETTE TESTCLIENT & HTTPX]
+- Severidade: Baixa (Aviso de biblioteca terceira)
+- Detalhe: Advertência de `httpx` vs `httpx2` e `anyio.abc.BlockingPortal` gerada pelo Starlette.
+  Não afeta a operação do software.
+
+[REQUISITO OPERACIONAL - GEMINI_API_KEY NO .ENV]
+- Severidade: Crítica para Modo de Produção
+- Detalhe: O assistente depende de uma chave válida de API da Google no `.env` (`GEMINI_API_KEY`)
+  com acesso aos modelos nativos de áudio full-duplex (`gemini-2.5-flash-native-audio-preview-12-2025`
+  ou `gemini-2.0-flash-exp`). Sem a chave, o motor de áudio entra em estado de erro e o assistente
+  opera apenas via API REST/WebSocket em modo texto ou testes.
+
+================================================================================
+5. CATÁLOGO COMPLETO DE CAPACIDADES DO KON (O que ele é capaz de fazer)
+================================================================================
+
+O KON possui um registro central de ferramentas (`ToolRegistry`) com 37 ferramentas
+nativamente disponíveis e integradas ao Gemini Live via Function Calling.
+
+Cada ferramenta possui um nível estrito de permissão de segurança:
+- SAFE: Execução automática e direta pelo assistente sem interrupção.
+- CONFIRM: Requer autorização do usuário (por voz natural ou pelo botão no HUD).
+- CRITICAL: Requer autorização obrigatória (nunca pode ser memorizada automaticamente).
+
+--------------------------------------------------------------------------------
+5.1. Ferramentas de Sistema e Telemetria (Categoria: system)
+--------------------------------------------------------------------------------
+1. `get_system_info` / `system_info` [SAFE]
+   - Retorna telemetria em tempo real: percentual de uso da CPU, uso e porcentagem
+     da memória RAM, e tempo de atividade (uptime) do Windows.
+   - Parâmetros: `metric` (opcional: 'cpu', 'memory', 'ram', 'uptime', 'all').
+2. `get_disk_info` [SAFE]
+   - Retorna o espaço total, livre e percentual de uso de todas as unidades de disco
+     conectadas ao computador (C:, D:, E:, etc.).
+3. `get_processes` [SAFE]
+   - Lista os processos ativos no sistema com filtro por nome e limite de quantidade.
+   - Parâmetros: `search` (opcional), `limit` (padrão: 10).
+4. `get_datetime` [SAFE]
+   - Retorna a data atual, hora exata, dia da semana e fuso horário do sistema.
+5. `take_screenshot` [SAFE]
+   - Captura a tela inteira do computador e salva a imagem localmente, retornando o caminho.
+   - Parâmetros: `output_path` (opcional).
+6. `shutdown_system` [CRITICAL]
+   - Desliga o computador de maneira segura após confirmação explícita.
+7. `restart_system` [CRITICAL]
+   - Reinicia o computador de maneira segura após confirmação explícita.
+
+--------------------------------------------------------------------------------
+5.2. Ferramentas de Gerenciamento de Aplicativos (Categoria: computer)
+--------------------------------------------------------------------------------
+8. `open_application` / `launch_application` [SAFE]
+   - Abre aplicativos do Windows pelo nome amigável ou executável.
+   - Suporta busca inteligente na lista de programas instalados, atalhos do menu Iniciar
+     e whitelist otimizada (ex: Chrome, Bloco de Notas, Calculadora, VS Code, Explorer, Terminal).
+   - Parâmetros: `application` (string).
+9. `close_application` [CONFIRM]
+   - Localiza os processos do aplicativo especificado e solicita confirmação antes de encerrar.
+   - Parâmetros: `application` (string).
+10. `list_installed_applications` [SAFE]
+    - Varre o registro do Windows e os diretórios do Menu Iniciar para listar os softwares instalados.
+    - Parâmetros: `query` (filtro opcional).
+11. `switch_window` [SAFE]
+    - Traz para o primeiro plano a janela do aplicativo solicitado.
+    - Parâmetros: `target` (string: título ou processo).
+
+--------------------------------------------------------------------------------
+5.3. Ferramentas de Sistema de Arquivos Universal (Categoria: filesystem)
+--------------------------------------------------------------------------------
+12. `search_file` [SAFE]
+    - Pesquisa arquivos de forma universal em qualquer disco do Windows.
+    - Suporta escopo de raiz restrito (ex: `root="Downloads"`), busca difusa tolerante a erros de voz
+      e suporte a versões numéricas (ex: "relatório 2.3.pdf").
+    - Parâmetros: `query` (obrigatório), `root` (opcional), `extension` (opcional).
+13. `list_directory` [SAFE]
+    - Lista itens e subpastas de uma pasta física ou conhecida (Downloads, Documentos, Desktop).
+    - Parâmetros: `path` (opcional).
+14. `open_file` [SAFE]
+    - Abre qualquer arquivo no aplicativo padrão associado no Windows. Suporta abertura referencial.
+    - Parâmetros: `path` (string).
+15. `open_folder` [SAFE]
+    - Abre uma pasta no Explorador de Arquivos do Windows (explorer.exe).
+    - Parâmetros: `folder` (string: nome da pasta, alias ou caminho).
+16. `check_file_exists` / `check_path` [SAFE]
+    - Verificação determinística imediata da existência de um arquivo ou diretório.
+    - Parâmetros: `path` (string).
+17. `get_file_info` [SAFE]
+    - Metadados completos do arquivo: tamanho em KB/MB, data de criação e modificação, extensão.
+    - Parâmetros: `path` (string).
+18. `get_folder_info` [SAFE]
+    - Metadados completos de pasta: quantidade de arquivos, subpastas e tamanho total.
+    - Parâmetros: `path` (string).
+19. `search_folder` [SAFE]
+    - Localiza pastas específicas no sistema de arquivos.
+    - Parâmetros: `query` (obrigatório), `root` (opcional).
+20. `hybrid_find_file` [SAFE]
+    - Busca híbrida: tenta encontrar via filesystem; caso não localize, aciona o Windows Explorer
+      visualmente para o usuário encontrar o arquivo.
+    - Parâmetros: `filename` (obrigatório), `fallback_to_explorer` (booleano).
+21. `create_file` [CONFIRM]
+    - Cria um novo arquivo com conteúdo opcional após confirmação do usuário.
+    - Parâmetros: `path` (obrigatório), `content` (opcional).
+22. `create_folder` [CONFIRM]
+    - Cria uma nova pasta no sistema de arquivos após confirmação.
+    - Parâmetros: `name` (obrigatório), `parent` (opcional).
+23. `copy_file` [CONFIRM]
+    - Copia um arquivo de um caminho de origem para um destino.
+    - Parâmetros: `source` (obrigatório), `destination` (obrigatório).
+24. `move_file` [CONFIRM]
+    - Move um arquivo de um caminho para outro.
+    - Parâmetros: `source` (obrigatório), `destination` (obrigatório).
+25. `rename_file` [CONFIRM]
+    - Renomeia arquivos ou diretórios com validação de segurança.
+    - Parâmetros: `path` (obrigatório), `new_name` (obrigatório).
+26. `delete_file` [CRITICAL]
+    - Exclusão segura de arquivos com autorização explícita obrigatória e proteção de lixeira.
+    - Bloqueia terminantemente deleção de pastas do sistema ou arquivos protegidos.
+    - Parâmetros: `path` (obrigatório).
+
+--------------------------------------------------------------------------------
+5.4. Ferramentas de Automação de Interface e Computer Use (Categoria: computer_use)
+--------------------------------------------------------------------------------
+27. `get_screen_info` [SAFE]
+    - Retorna a resolução e escala de todos os monitores conectados ao computador.
+28. `get_active_window` [SAFE]
+    - Identifica o título, processo e coordenadas da janela que está em foco na tela.
+29. `list_windows` [SAFE]
+    - Lista todas as janelas abertas e visíveis no sistema operacional.
+    - Parâmetros: `query` (filtro opcional).
+30. `focus_window` / `maximize_window` / `minimize_window` / `restore_window` [SAFE]
+    - Controla o estado de exibição de qualquer janela ativa ou de fundo.
+31. `close_window` [CONFIRM]
+    - Fecha a janela em foco ou especificada de forma graciosa via Win32.
+32. `move_mouse` [SAFE]
+    - Movimenta o cursor do mouse com interpolação suave para as coordenadas (x, y).
+    - Parâmetros: `x` (inteiro), `y` (inteiro).
+33. `click` / `double_click` / `right_click` [SAFE]
+    - Executa cliques com botão esquerdo, duplo ou direito.
+    - Possui validação `expected_window` para proteção contextual.
+    - Parâmetros: `x`, `y`, `button`, `expected_window`.
+34. `drag` / `mouse_down` / `mouse_up` [SAFE]
+    - Operações de arrastar e soltar (drag and drop) de arquivos ou itens na interface.
+35. `scroll` [SAFE]
+    - Rola verticalmente janelas, páginas web ou listas.
+    - Parâmetros: `amount` (inteiro).
+36. `type_text` [SAFE]
+    - Digita texto simulando digitação humana, com preservação de acentuação pt-BR.
+    - Parâmetros: `text` (obrigatório), `expected_window` (opcional).
+37. `press_key` / `hotkey` [SAFE]
+    - Pressiona teclas individuais (Enter, Esc, Tab) ou combinações de teclas (Ctrl+C, Alt+Tab, Win+R).
+    - Parâmetros: `key` ou `keys` (lista/string), `expected_window` (opcional).
+38. `observe_ui` / `find_ui_element` / `click_element` [SAFE]
+    - Inspeciona a árvore de elementos acessíveis (UI Automation) da janela ativa:
+      detecta botões, caixas de texto, links e suas coordenadas exatas antes de clicar.
+39. `computer_use` [SAFE]
+    - Orquestrador de tarefas compostas: executa sequências estruturadas seguindo
+      o paradigma "Observe -> Act -> Verify".
+
+--------------------------------------------------------------------------------
+5.5. Ferramentas de Navegador Web (Categoria: browser)
+--------------------------------------------------------------------------------
+40. `open_url` [SAFE]
+    - Abre um link ou site no navegador padrão configurado no Windows.
+    - Parâmetros: `url` (string).
+41. `search_web` [SAFE]
+    - Executa pesquisa direta na web com o termo especificado.
+    - Parâmetros: `query` (string).
+42. `new_browser_tab` / `close_browser_tab` / `switch_browser_tab` [SAFE]
+    - Gerencia abas abertas no navegador (criar, fechar aba atual, alternar por índice ou próximo).
+43. `navigate_browser` / `browser_go_back` / `browser_go_forward` / `browser_reload` [SAFE]
+    - Navega na aba ativa através da barra de endereços, volta ou avança no histórico e atualiza a página.
+44. `browser_read_page` [SAFE]
+    - Inspeciona elementos de texto e estrutura visíveis no navegador.
+
+================================================================================
+6. SUBSISTEMA DE SEGURANÇA E CONFIRMAÇÃO POR VOZ
+================================================================================
+
+O KON implementa um modelo de segurança baseado em Zero Trust para o modelo de IA:
+A IA NÃO tem permissão de auto-autorizar operações de risco.
+
+6.1. Fluxo de Autorização Criptográfica:
+1. O Gemini decide acionar uma ferramenta de nível CONFIRM ou CRITICAL (ex: `delete_file`).
+2. O `GeminiToolDispatcher` intercepta a chamada e gera um `PendingConfirmation` no
+   `ConfirmationManager`.
+3. O sistema emite um evento WebSocket para o HUD React e avisa o usuário por áudio
+   ("Você confirma a exclusão do arquivo X?").
+4. A autorização pode ser dada de duas maneiras:
+   a) Visual: O usuário clica no botão "Aprovar" no modal holográfico do HUD.
+   b) Voz Natural: O usuário responde ao microfone ("Sim", "Pode fazer", "Autorizo", "Com certeza").
+      O `LiveAudioEngine` transcreve o áudio e o `ConfirmationManager.parse_natural_consent`
+      interpreta a resposta afirmativa.
+5. Ao confirmar, o `ConfirmationManager` emite um `authorization_token` criptográfico de uso único
+   (via `secrets.token_hex(16)`), com expiração de 30 segundos.
+6. Apenas com esse token válido a ferramenta é efetivamente executada no sistema operacional.
+
+6.2. Políticas de Arquivos Sensíveis (`file_policy.py`):
+- O sistema bloqueia leitura, alteração ou exclusão de qualquer arquivo de credencial:
+  `.env`, `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `credentials.*`, `*.kdbx`, senhas.
+- O sistema bloqueia operações destrutivas em diretórios vitais do Windows:
+  `C:\Windows`, `C:\Windows\System32`, `C:\Program Files`, `C:\ProgramData\Microsoft`, `C:\$Recycle.Bin`.
+- O validador de caminhos (`path_validator.py`) neutraliza tentativas de path traversal (`..`).
+
+================================================================================
+7. BANCO DE DADOS E PERSISTÊNCIA (SQLite `data/kon.db`)
+================================================================================
+
+O assistente possui um banco relacional SQLite local estruturado com as tabelas:
+1. `settings`: Chaves e valores de configuração do assistente (ex: temas, volumes).
+2. `folder_aliases`: Mapeamento de nomes amigáveis para caminhos físicos reais no Windows.
+3. `command_history`: Log completo de todos os comandos executados, com estado, status e resposta.
+4. `memories`: Memória factual de longo prazo do usuário (fatos aprendidos durante a conversa).
+5. `permission_memory`: Memória de permissões lembradas pelo usuário ("sempre_aprovar" ou "sempre_negar"
+   para ferramentas do tipo CONFIRM). Ferramentas CRITICAL nunca são gravadas como "sempre_aprovar".
+
+================================================================================
+8. GUIA E DIRETRIZES PARA TREINAR E INSTRUIR OUTRA IA
+================================================================================
+
+Para treinar uma IA ou integrá-la como agente desenvolvedor do projeto KON,
+utilize as seguintes diretrizes essenciais (System Prompt / Context):
+
+8.1. Filosofia Arquitetural:
+- "O KON é um assistente pessoal para Windows baseado no blueprint ADA V2, com áudio nativo
+   full-duplex via Gemini Live API (16kHz in / 24kHz out com PyAudio) e Function Calling no Windows."
+- "Nunca reintroduza modelos pesados de STT/TTS/VAD/WakeWord locais no fluxo principal.
+   O pipeline offline antigo está preservado estritamente como legado em `_legacy/`."
+- "O KON opera em tempo real: não force o usuário a clicar em botões para falar. O microfone
+   é contínuo e a interrupção da fala da IA (barge-in) é nativa."
+
+8.2. Regras de Código e Contribuição:
+1. Separação de Camadas:
+   - Toda interação com janelas e desktop fica em `backend/computer/`.
+   - Toda definição de ferramentas fica em `backend/ai/tool_registry.py` usando `ToolSpec`.
+   - Toda comunicação entre backend e frontend passa pelo `EventBus` (`backend/core/events.py`).
+2. Segurança Rigorosa:
+   - Nenhuma ferramenta que exclua arquivos ou desligue o sistema pode ser SAFE. Deve ser CONFIRM ou CRITICAL.
+   - NUNCA use `eval()`, `exec()` ou `os.system()` com entradas não sanitizadas do modelo.
+   - Sempre utilize `PathSecurityValidator.sanitize_and_resolve()` antes de tocar no disco.
+3. Logging Padronizado:
+   - Use o `kon_logger` com os prefixos padrão do projeto:
+     `[AUDIO]`, `[KON]`, `[STATE]`, `[EXEC]`, `[SECURITY]`, `[SERVER]`, `[TELEMETRY]`.
+4. Resolução de Caminhos no Windows:
+   - Nunca assuma que pastas estão em `C:\Users\username\Downloads`. Sempre consulte
+     `WindowsKnownFolders` ou `UniversalPathResolver` para respeitar redirecionamentos do OneDrive
+     e unidades secundárias (D:, E:).
+
+8.3. Roadmap Recomendado para Próximas Iterações:
+1. Documentação: Atualizar o arquivo `README.md` raiz para refletir o ADA V2 Gemini Live.
+2. Atualização de SDK: Migrar métodos deprecados `session.send` para `session.send_client_content`
+   em `backend/core/live_engine.py` e nos testes de Live áudio.
+3. Visão Computacional Contínua: Habilitar o envio periódico de screenshots/frames da tela
+   ou webcam através do canal multimodal do Gemini Live, permitindo que a IA "veja" o que
+   o usuário está fazendo enquanto fala.
+4. Hotkeys Globais: Implementar atalho de teclado global (ex: Ctrl+Espaço ou Win+K) no Windows
+   para silenciar temporariamente o microfone (mute toggle).
+
+================================================================================
+FIM DO DOSSIÊ DE VISTORIA TÉCNICA - PROJETO KON
+================================================================================

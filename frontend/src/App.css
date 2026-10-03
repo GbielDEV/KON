@@ -1,0 +1,815 @@
+/* ==========================================================================
+   KON Assistant - Main Stylesheet (Futuristic Minimalist JARVIS Aesthetic)
+   ========================================================================== */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(circle at 50% 40%, #060c18 0%, #03050a 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Status Header
+   -------------------------------------------------------------------------- */
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 28px;
+  background: rgba(6, 11, 22, 0.75);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.brand-logo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--primary-cyan);
+  text-shadow: 0 0 12px var(--primary-glow-strong);
+}
+
+.brand-version {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.connection-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.connection-pill.online {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.connection-pill.offline {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.mic-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.mic-pill.mic-active {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--primary-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+.mic-pill.mic-inactive {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+}
+
+.mic-icon {
+  font-size: 0.8rem;
+}
+
+.status-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.online .status-indicator-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.offline .status-indicator-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Header Telemetry */
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.metric-bar-wrap {
+  width: 55px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.metric-bar-fill.cpu {
+  background: linear-gradient(90deg, #00f0ff, #3b82f6);
+  box-shadow: 0 0 6px var(--primary-glow);
+}
+
+.metric-bar-fill.ram {
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+}
+
+.metric-value {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.metric-divider {
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 0.8rem;
+}
+
+/* Header Clock */
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.clock-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.clock-icon {
+  color: var(--primary-cyan);
+  font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   Main Stage Layout
+   -------------------------------------------------------------------------- */
+.main-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  overflow: hidden;
+  position: relative;
+}
+
+.center-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.side-console {
+  padding: 16px 20px 16px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Hologram Core & Reactor Visualizer
+   -------------------------------------------------------------------------- */
+.hologram-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+.hologram-stage {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ambient glow */
+.ambient-glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  transition: all 0.6s ease;
+  filter: blur(40px);
+  z-index: 1;
+}
+
+/* Tech Rings */
+.ring {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.svg-ring {
+  width: 100%;
+  height: 100%;
+}
+
+.ring-outer {
+  animation: rotate-clockwise 40s linear infinite;
+}
+
+.ring-middle {
+  animation: rotate-counter 25s linear infinite;
+}
+
+.ring-inner {
+  animation: rotate-clockwise 15s linear infinite;
+}
+
+/* Central Orb */
+.core-orb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s ease;
+}
+
+.core-inner-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: pulse-core 3s infinite ease-in-out;
+}
+
+.core-center-point {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+/* Pulse Waves */
+.pulse-wave {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* Audio Visualizer Bars (Speaking) */
+.audio-visualizer-bars {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  z-index: 6;
+}
+
+.audio-visualizer-bars .bar {
+  width: 4px;
+  height: 10px;
+  background: var(--primary-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--primary-cyan);
+  animation: voice-bar 0.8s infinite ease-in-out alternate;
+}
+
+.audio-visualizer-bars .b1 { animation-delay: 0.1s; height: 12px; }
+.audio-visualizer-bars .b2 { animation-delay: 0.3s; height: 22px; }
+.audio-visualizer-bars .b3 { animation-delay: 0.5s; height: 32px; }
+.audio-visualizer-bars .b4 { animation-delay: 0.2s; height: 38px; }
+.audio-visualizer-bars .b5 { animation-delay: 0.4s; height: 26px; }
+.audio-visualizer-bars .b6 { animation-delay: 0.6s; height: 18px; }
+.audio-visualizer-bars .b7 { animation-delay: 0.15s; height: 10px; }
+
+@keyframes voice-bar {
+  0% { transform: scaleY(0.4); opacity: 0.6; }
+  100% { transform: scaleY(1.4); opacity: 1; }
+}
+
+/* ==========================================================================
+   Dynamic Reactive States
+   ========================================================================== */
+
+/* 0. BOOT STATE — amber/golden loading indicator */
+.state-boot {
+  color: #fbbf24;
+}
+.state-boot .ambient-glow {
+  background: rgba(251, 191, 36, 0.12);
+  animation: pulse-boot-glow 2.5s infinite ease-in-out;
+}
+.state-boot .ring-outer {
+  animation-duration: 60s;
+  opacity: 0.5;
+}
+.state-boot .ring-middle {
+  animation-duration: 45s;
+  opacity: 0.4;
+}
+.state-boot .ring-inner {
+  animation-duration: 30s;
+  opacity: 0.35;
+}
+.state-boot .core-orb {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(251, 191, 36, 0.05) 70%);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+  animation: pulse-boot-core 2.5s infinite ease-in-out;
+}
+.state-boot .core-center-point {
+  box-shadow: 0 0 8px #fbbf24;
+  opacity: 0.7;
+}
+
+@keyframes pulse-boot-glow {
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@keyframes pulse-boot-core {
+  0%, 100% { transform: scale(0.88); opacity: 0.5; }
+  50% { transform: scale(1.04); opacity: 0.9; }
+}
+
+/* 1. IDLE STATE */
+.state-idle {
+  color: var(--primary-cyan);
+}
+.state-idle .ambient-glow {
+  background: rgba(0, 240, 255, 0.1);
+}
+.state-idle .core-orb {
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.3) 0%, rgba(0, 240, 255, 0.05) 70%);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+}
+.state-idle .core-inner-glow {
+  background: rgba(0, 240, 255, 0.5);
+}
+.state-idle .core-center-point {
+  box-shadow: 0 0 10px #00f0ff;
+}
+
+/* 2. LISTENING STATE */
+.state-listening {
+  color: #38bdf8;
+}
+.state-listening .ambient-glow {
+  background: rgba(56, 189, 248, 0.25);
+  transform: scale(1.15);
+}
+.state-listening .ring-outer {
+  animation-duration: 20s;
+}
+.state-listening .core-orb {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, rgba(56, 189, 248, 0.1) 70%);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.7);
+  animation: pulse-active 1.2s infinite ease-in-out;
+}
+.state-listening .pulse-wave-1 {
+  width: 160px;
+  height: 160px;
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  animation: radar-wave 2s infinite ease-out;
+}
+.state-listening .pulse-wave-2 {
+  width: 160px;
+  height: 160px;
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  animation: radar-wave 2s infinite ease-out 1s;
+}
+
+/* 3. THINKING STATE */
+.state-thinking {
+  color: #a855f7;
+}
+.state-thinking .ambient-glow {
+  background: rgba(168, 85, 247, 0.2);
+}
+.state-thinking .ring-outer {
+  animation-duration: 10s;
+}
+.state-thinking .ring-middle {
+  animation-duration: 7s;
+}
+.state-thinking .ring-inner {
+  animation-duration: 5s;
+}
+.state-thinking .core-orb {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(168, 85, 247, 0.1) 70%);
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.7);
+  animation: pulse-active 0.8s infinite ease-in-out;
+}
+.state-thinking .core-center-point {
+  box-shadow: 0 0 12px #a855f7;
+}
+
+/* 4. EXECUTING STATE */
+.state-executing {
+  color: #f59e0b;
+}
+.state-executing .ambient-glow {
+  background: rgba(245, 158, 11, 0.25);
+}
+.state-executing .ring-outer {
+  animation-duration: 6s;
+}
+.state-executing .ring-middle {
+  animation-duration: 4s;
+}
+.state-executing .core-orb {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.6) 0%, rgba(245, 158, 11, 0.15) 70%);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.8);
+  animation: pulse-active 0.6s infinite ease-in-out;
+}
+.state-executing .core-center-point {
+  box-shadow: 0 0 12px #f59e0b;
+}
+
+/* 5. SPEAKING STATE */
+.state-speaking {
+  color: #22d3ee;
+}
+.state-speaking .ambient-glow {
+  background: rgba(34, 211, 238, 0.2);
+}
+.state-speaking .core-orb {
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.4) 0%, transparent 70%);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.6);
+  opacity: 0.4;
+}
+
+/* 6. ERROR STATE */
+.state-error {
+  color: #ef4444;
+}
+.state-error .ambient-glow {
+  background: rgba(239, 68, 68, 0.3);
+}
+.state-error .core-orb {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.6) 0%, rgba(239, 68, 68, 0.15) 70%);
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
+  animation: error-flash 0.6s infinite alternate;
+}
+.state-error .core-center-point {
+  box-shadow: 0 0 12px #ef4444;
+}
+
+/* Keyframes */
+@keyframes rotate-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-counter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pulse-core {
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes pulse-active {
+  0%, 100% { transform: scale(0.92); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes radar-wave {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes error-flash {
+  0% { opacity: 0.5; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Labels below Hologram */
+.hologram-labels {
+  margin-top: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.state-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.state-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.state-description {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.state-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Event Console
+   -------------------------------------------------------------------------- */
+.event-console-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.console-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--primary-cyan);
+}
+
+.console-terminal-icon {
+  color: var(--primary-cyan);
+  font-family: var(--font-mono);
+}
+
+.log-count {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.console-clear-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.console-clear-btn:hover {
+  border-color: var(--primary-cyan);
+  color: var(--primary-cyan);
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.console-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.empty-logs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.console-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.log-time {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.log-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+
+.badge-info { color: #38bdf8; }
+.badge-warn { color: #fbbf24; }
+.badge-error { color: #f87171; }
+.badge-cmd { color: #a78bfa; }
+.badge-user { color: #34d399; }
+
+.log-text {
+  color: #cbd5e1;
+  font-size: 0.76rem;
+}
+
+.level-error .log-text { color: #fca5a5; }
+.level-warn .log-text { color: #fde68a; }
+.level-cmd .log-text { color: #e9d5ff; font-weight: 500; }
+.level-user .log-text { color: #86efac; font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   Footer — Voice Status Indicator (No Buttons, No Inputs)
+   -------------------------------------------------------------------------- */
+.footer-voice-status {
+  padding: 14px 28px 20px;
+  background: rgba(6, 11, 22, 0.85);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+}
+
+.voice-status-bar {
+  max-width: 700px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: rgba(4, 8, 16, 0.8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.4s ease;
+}
+
+.voice-status-bar.state-bar-idle {
+  border-color: rgba(0, 240, 255, 0.25);
+}
+
+.voice-status-bar.state-bar-listening {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.15);
+}
+
+.voice-status-bar.state-bar-thinking {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.15);
+}
+
+.voice-status-bar.state-bar-executing {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.15);
+}
+
+.voice-status-bar.state-bar-speaking {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.15);
+}
+
+.voice-status-bar.state-bar-error {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.15);
+}
+
+.voice-status-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.voice-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.voice-status-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.voice-status-sublabel {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+
+/* --------------------------------------------------------------------------
+   Utility classes
+   -------------------------------------------------------------------------- */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 200px;
+  }
+  .side-console {
+    padding: 0 20px 10px 20px;
+  }
+}

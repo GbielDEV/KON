@@ -1,0 +1,24 @@
+# KON Core Backend Dependencies (ADA V2 Blueprint)
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+websockets>=13.0
+python-socketio>=5.10.0
+pydantic>=2.10.0
+python-dotenv>=1.0.0
+psutil>=6.1.0
+
+# Gemini Live API & Native Audio Engine (ADA V2 Architecture)
+google-genai>=1.0.0
+PyAudio>=0.2.14,<0.3
+numpy>=2.0.0
+
+# Browser Automation (Persistent Background Session)
+playwright>=1.40.0
+
+# Testing
+pytest>=8.3.0
+httpx>=0.28.0
+
+# LEGACY (Arquivados em _legacy/, fora do pipeline de execução principal):
+# SpeechRecognition, pyttsx3, openwakeword, faster-whisper, webrtcvad-wheels, sentence-transformers, sounddevice
+

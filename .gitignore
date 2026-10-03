@@ -1,0 +1,94 @@
+# ==============================================================================
+# Repositórios Externos e Referências de Estudo
+# ==============================================================================
+OpenJarvis-main/
+ada_v2-main/
+reconhecimento-de-voz-main/
+*-main/
+
+# ==============================================================================
+# Arquivos de Sistema e Lixo do Windows/OS
+# ==============================================================================
+%SystemDrive%/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# ==============================================================================
+# Ambientes Virtuais e Caches Python
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ==============================================================================
+# Node.js e Frontend
+# ==============================================================================
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vite/
+frontend/.vite/
+
+# ==============================================================================
+# Banco de Dados, Logs e Auditoria
+# ==============================================================================
+data/*.db
+data/*.db-journal
+data/*.sqlite
+data/*.sqlite3
+!data/.gitkeep
+
+logs/*
+!logs/.gitkeep
+*.log
+*.jsonl
+audit_security.jsonl
+
+# ==============================================================================
+# Gravações de Áudio e Histórico Local
+# ==============================================================================
+data/recordings/*
+!data/recordings/.gitkeep
+data/chat_history/*
+!data/chat_history/.gitkeep
+
+# ==============================================================================
+# Variáveis de Ambiente e Segredos
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# ==============================================================================
+# IDEs e Editores
+# ==============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
